@@ -1,4 +1,4 @@
-# RING0 — architecture (milestone 0: design, nothing built yet)
+# RING0 — architecture (engine built: milestones 1–4; UI next)
 
 ## Repo structure
 
@@ -10,16 +10,14 @@ ring0/
 ├─ package.json / vite.config.ts / tsconfig.json / vercel.json
 ├─ index.html
 ├─ src/
-│  ├─ engine/                 PURE TS. No react, no DOM, no Date, no Math.random. Enforced by a lint rule + tsconfig (lib: ES2022 only, no "dom").
-│  │  ├─ core/
-│  │  │   ├─ types.ts         Step, Trace, Explanation, ScenarioEnvelope        ← written
-│  │  │   ├─ rng.ts           mulberry32(seed)
-│  │  │   └─ share.ts         encode/decode scenario <-> URL hash (JSON -> lz-string -> base64url), version check
-│  │  ├─ scheduler/           types.ts ← written · policies.ts · run.ts · metrics.ts · presets.ts · scheduler.test.ts
-│  │  ├─ memory/              types.ts ← written · algos.ts · run.ts · belady.ts · memory.test.ts
-│  │  ├─ deadlock/            types.ts ← written · rag.ts · banker.ts · presets.ts · deadlock.test.ts
-│  │  ├─ sync/                types.ts ← written · vm.ts · explore.ts · presets.ts · sync.test.ts
-│  │  └─ index.ts             re-exports the four *Api surfaces
+│  ├─ engine/                 PURE TS. No react, no DOM, no clock, no unseeded randomness. Enforced by purity.test.ts.
+│  │  ├─ core/                types.ts (Step, Trace, Explanation, ScenarioEnvelope) · rng.ts (mulberry32) · share.ts (URL encode/decode) · core.test.ts
+│  │  ├─ scheduler/           types.ts · run.ts (all six policies, one tick loop) · presets.ts (textbook workloads) · scheduler.test.ts
+│  │  ├─ memory/              types.ts · run.ts (FIFO/LRU/OPT/Clock, TLB, fault curve, generator) · memory.test.ts
+│  │  ├─ deadlock/            types.ts · run.ts (graph reduction, cycle, banker) · presets.ts (book graphs, dining philosophers) · deadlock.test.ts
+│  │  ├─ sync/                types.ts · run.ts (register VM, interleaving search) · presets.ts · sync.test.ts
+│  │  ├─ purity.test.ts
+│  │  └─ index.ts             the one import surface for the UI
 │  ├─ store/
 │  │   └─ useSim.ts           Zustand: { module, scenario, cursor, playing, speed }. Trace is derived (useMemo), never stored.
 │  ├─ ui/
@@ -60,17 +58,18 @@ ring0/
 - **Context-switch cost defaults to 0**, since textbook numbers assume it. The Gantt still draws the markers.
 - **Priority: lower number = higher priority.**
 - **Sync uses a small register-machine instruction set** instead of real threads or generators. It makes "step one instruction" literal and lets `findViolation` exhaustively search interleavings.
-- **Clock/MLFQ details:** Clock hand starts at frame 0 and advances past the replaced frame; MLFQ demotes on full-quantum use, does not demote when a process yields for I/O. Each is pinned by a textbook test in its milestone.
+- **Clock/MLFQ details:** Clock sets the reference bit on load and the hand stops just past the replaced frame; MLFQ demotes on full-quantum use, keeps its level when it leaves for I/O or is preempted by a higher level.
+- **Banker scan order:** each round continues from the last process picked, so it finds ⟨P1, P3, P4, P0, P2⟩ for the book example (the book quotes ⟨P1, P3, P4, P2, P0⟩, also safe; the test checks both).
 
 ## Milestones
 
 | # | Deliverable | Gate |
 |---|---|---|
-| 0 | This design + types | you approve the API |
-| 1 | Project scaffold + `core` + scheduler engine + tests | textbook tests green |
-| 2 | memory engine + tests (incl. Belady 9→10) | green |
-| 3 | deadlock engine + tests (Silberschatz banker example) | green |
-| 4 | sync engine + tests | green |
+| 0 | This design + types | done |
+| 1 | Project scaffold + `core` + scheduler engine + tests | done |
+| 2 | memory engine + tests (incl. Belady 9→10) | done |
+| 3 | deadlock engine + tests (Silberschatz banker example) | done |
+| 4 | sync engine + tests | done |
 | 5 | UI, one module at a time, shell + time travel + share + export | Lighthouse ≥ 90 |
 | 6 | README with GIFs, WRITEUP.md with TODOs, deploy | live URL |
 
@@ -78,5 +77,6 @@ ring0/
 
 - Scheduling: Silberschatz, *Operating System Concepts* 10e, §5.3 (FCFS avg wait 17; SJF avg wait 7; RR q=4 avg wait 5.66), and SRTF example §5.3.2.
 - Paging: Silberschatz §10.4 (FIFO 15 faults, LRU 12, OPT 9 on the 20-ref string, 3 frames); Belady string 1,2,3,4,1,2,5,1,2,3,4,5 (9 faults @3 frames, 10 @4).
-- Banker's: Silberschatz §8.6.3.3 (5 processes, 3 resource types, safe sequence <P1,P3,P4,P0,P2>).
-- Sync: Tanenbaum, *Modern Operating Systems*, §2.3 (producer-consumer with semaphores; lost update on shared counter).
+- Banker's: Silberschatz §8.6.3.3 (5 processes, 3 resource types; request examples for P1, P4, P0). Detection: §8.7.2. RAG figures: §8.3.2.
+- Sync: Silberschatz §6.1 (count++/count-- race, ends at 4), §7.1.1 bounded buffer, §7.1.2 readers-writers, §6.8.3 opposite-order deadlock.
+- MLFQ: Arpaci-Dusseau, *OSTEP* ch. 8, Figure 8.3.

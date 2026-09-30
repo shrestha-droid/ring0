@@ -24,7 +24,7 @@ export interface ThreadDef {
 }
 
 export type Schedule =
-  | { kind: 'explicit'; order: string[] } // user stepping: thread id per step; blocked/finished picks are skipped with a note
+  | { kind: 'explicit'; order: string[] } // user stepping: thread id per step; picks of blocked/finished threads are skipped
   | { kind: 'roundrobin'; slice: number }
   | { kind: 'seeded'; seed: number }; // deterministic pseudo-random interleaving
 
@@ -47,8 +47,12 @@ export interface SyncState {
   bufs: Record<string, number>; // current fill level
   status: Record<string, 'ready' | 'blocked' | 'done'>;
   waiting: Record<string, string[]>; // sem -> blocked thread ids, FIFO
-  ran: string | null; // thread that executed this step
+  ran: string | null; // thread that executed this step (null on the initial state)
   violations: string[]; // cumulative: "buffer overflow", "lost update: expected 2, got 1", ...
+  /** Lost-update detection: each store bumps the variable's version; a thread storing after someone else's store since its load clobbers it. */
+  versions: Record<string, number>;
+  lastWriter: Record<string, string>;
+  loadedVersions: Record<string, Record<string, number>>; // thread -> var -> version it loaded
 }
 
 export interface SyncMetrics {
@@ -61,8 +65,8 @@ export type SyncTrace = Trace<SyncState, SyncMetrics>;
 export type SyncScenario = ScenarioEnvelope<'sync', SyncParams>;
 
 /**
- * runSync(params): SyncTrace
- * findViolation(params, maxDepth): string[] | null   — DFS over all interleavings; returns the shortest `order` that violates `expect`
+ * runSync(params): SyncTrace                          — step 0 is the initial state, then one step per instruction executed
+ * findViolation(params, maxDepth): string[] | null   — breadth-first over all interleavings; returns the shortest `order` that violates `expect`
  *                                                      (this is how the UI offers "show me a bad interleaving" in one click)
  * PRESETS: racyCounter, lockedCounter (mutex semaphore), producerConsumer (empty/full/mutex), readersWriters
  */
