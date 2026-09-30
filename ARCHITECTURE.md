@@ -1,4 +1,4 @@
-# RING0 — architecture (engine built: milestones 1–4; UI next)
+# RING0 — architecture (engine and UI built: milestones 1–5)
 
 ## Repo structure
 
@@ -18,16 +18,19 @@ ring0/
 │  │  ├─ sync/                types.ts · run.ts (register VM, interleaving search) · presets.ts · sync.test.ts
 │  │  ├─ purity.test.ts
 │  │  └─ index.ts             the one import surface for the UI
-│  ├─ store/
-│  │   └─ useSim.ts           Zustand: { module, scenario, cursor, playing, speed }. Trace is derived (useMemo), never stored.
+│  ├─ store.ts               Zustand: one scenario per module + module, cursor, playing, speed. Share links and JSON import go through
+│  │                         accept(), which runs the engine on the params and rejects anything it can't run.
+│  ├─ export.ts              SVG → PNG (inlines computed styles first), JSON download
+│  ├─ styles.css             every colour is a token; module accent swaps on <html data-module>
 │  ├─ ui/
-│  │  ├─ shell/               Header, module tabs, playback bar, Explain panel, export menu, shortcuts
-│  │  ├─ scheduler/           ProcessTable, Gantt (SVG), ReadyQueue, MetricsCards, CompareGrid
-│  │  ├─ memory/              FrameGrid, RefStrip, PageTable, Tlb, FaultCurve
-│  │  ├─ deadlock/            RagCanvas (SVG + d3-drag), BankerTable, SafeSequence
-│  │  ├─ sync/                ThreadLanes, SharedState, InterleavingStepper
-│  │  └─ theme/               tokens.css (one accent per module), fonts
-│  ├─ export/                 svgToPng.ts, downloadJson.ts
+│  │  ├─ App.tsx             top bar, tabs, share/export/import, shortcuts dialog, module intro, error boundary
+│  │  ├─ Playback.tsx        play/step/scrub + keyboard (Space/K, ←→/JL, Shift = ×10, Home/End, [ ])
+│  │  ├─ common.tsx          Panel, Layout, ExplainPanel, fields, Segmented, Toggle, series colours
+│  │  ├─ Scheduler.tsx       process table, algorithm + compare, Gantt with per-process lanes, queues, metrics
+│  │  ├─ Memory.tsx          reference string, frame grid (clock bits + hand), page table + TLB, fault curve with Belady marker
+│  │  ├─ Deadlock.tsx        draggable RAG (click-to-connect), banker matrices, safety animation, request/commit
+│  │  ├─ Sync.tsx            thread lanes with PC, interleaving strip, shared memory, manual stepping, race finder
+│  │  └─ icons.tsx
 │  └─ main.tsx
 └─ tests/ (only e2e smoke later; engine tests sit next to the engine)
 ```
@@ -39,7 +42,7 @@ ring0/
 3. **One contract, four modules.** `Step<S>` carries an `Explanation {summary, why}` produced by the engine at the moment of the decision, so the Explain panel can never disagree with the algorithm. Tests assert on these strings for key steps.
 4. **Compare mode is free.** `compareSchedulers` runs the same `procs` through N algos. The UI only lays traces out side by side and shares one cursor.
 5. **Determinism rules.** Fixed tie-break (earlier arrival, then process order). No time or randomness inside the engine; generators take a seed stored in the scenario.
-6. **Rendering.** SVG + a little d3 (scales, drag) instead of WebGL. The datasets are tiny, SVG gives crisp PNG export (serialise to canvas), good a11y, and trivially meets Lighthouse 90. WebGL would add weight for no visible gain.
+6. **Rendering.** Plain SVG, no d3: scales are one-line functions and dragging uses pointer events. The datasets are tiny, SVG gives crisp PNG export (serialise to canvas), good a11y, and trivially meets Lighthouse 90. WebGL would add weight for no visible gain.
 7. **Share links.** `#s=<lz-string(JSON(envelope))>`. `v:1` field for migrations. Hash (not query) so nothing hits a server. One small dependency (lz-string); the native CompressionStream is async and awkward in the synchronous decode path on load.
 8. **Deploy.** Vercel, static.
 
@@ -70,7 +73,7 @@ ring0/
 | 2 | memory engine + tests (incl. Belady 9→10) | done |
 | 3 | deadlock engine + tests (Silberschatz banker example) | done |
 | 4 | sync engine + tests | done |
-| 5 | UI, one module at a time, shell + time travel + share + export | Lighthouse ≥ 90 |
+| 5 | UI, one module at a time, shell + time travel + share + export | built; Lighthouse pending |
 | 6 | README with GIFs, WRITEUP.md with TODOs, deploy | live URL |
 
 ## Textbook sources the tests will cite
