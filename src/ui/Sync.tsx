@@ -94,8 +94,8 @@ function Controls({ p, trace, i }: { p: SyncParams; trace?: SyncTrace; i: number
   const load = (id: string, fixed: boolean) => {
     const pr = PROGRAMS.find((x) => x.id === id)!;
     setProg({ id, fixed });
-    useSim.getState().update('sync', { ...(fixed ? pr.fixed : pr.broken) });
-    useSim.getState().setCursor(0);
+    // Replace, don't merge: fields like `expect` must not leak from the previous program.
+    useSim.setState({ sync: fixed ? pr.fixed : pr.broken, cursor: 0, playing: false });
   };
   const setSchedule = (schedule: Schedule) => update('sync', { schedule });
   const mode = p.schedule.kind;

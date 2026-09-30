@@ -214,6 +214,10 @@ function FaultCurve({ refs, frames, algo }: { refs: number[]; frames: number; al
   const x = (f: number) => padL + ((f - 1) / Math.max(1, maxF - 1)) * (w - padL - padR);
   const y = (v: number) => padT + (1 - v / maxY) * (h - padT - padB);
   const yTicks = [0, Math.round(maxY / 2), maxY];
+  const framesAt = (e: React.PointerEvent | React.MouseEvent) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    return Math.max(1, Math.min(maxF, Math.round(1 + ((e.clientX - r.left - padL) / (w - padL - padR)) * (maxF - 1))));
+  };
   // Direct labels at the line ends, nudged apart so equal end values don't overprint.
   const labelY: number[] = [];
   curves.map((c, k) => ({ k, y: y(c.ys.at(-1)!) })).sort((a, b) => a.y - b.y)
@@ -222,9 +226,9 @@ function FaultCurve({ refs, frames, algo }: { refs: number[]; frames: number; al
   return (
     <div ref={wrap} className="curve">
       <svg width={w} height={h} role="img" aria-label="Page faults for 1 to N frames, one line per algorithm"
-        onPointerMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); const f = Math.round(1 + ((e.clientX - r.left - padL) / (w - padL - padR)) * (maxF - 1)); setHover(Math.max(1, Math.min(maxF, f))); }}
+        onPointerMove={(e) => setHover(framesAt(e))}
         onPointerLeave={() => setHover(null)}
-        onClick={() => hover && update('memory', { frames: hover })}
+        onClick={(e) => update('memory', { frames: framesAt(e) })}
       >
         {yTicks.map((t) => (
           <g key={t}>

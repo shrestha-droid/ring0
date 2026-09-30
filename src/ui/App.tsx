@@ -29,6 +29,7 @@ const SHORTCUTS: [string, string][] = [
 export function App() {
   const module = useSim((s) => s.module);
   const toast = useSim((s) => s.toast);
+  const switched = useSim((s) => s.switched);
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export function App() {
     <div className="app">
       <a className="skip" href="#stage">Skip to simulation</a>
       <header className="topbar">
-        <a className="brand" href={location.pathname} aria-label="RING0 home">
+        <a className="brand" href="./" aria-label="RING0 home">
           <RingMark />
           <span className="wordmark">RING<b>0</b></span>
           <span className="tagline">operating systems, <em>made visible</em></span>
@@ -67,7 +68,7 @@ export function App() {
         <Actions onHelp={() => dialog.current?.showModal()} />
       </header>
 
-      <main id="stage" className="main" key={module}>
+      <main id="stage" className={`main ${switched ? 'enter' : ''}`} key={module}>
         <Intro tab={TABS.find((t) => t.id === module)!} />
         <ErrorBoundary>
           {module === 'scheduler' && <SchedulerView />}
@@ -133,10 +134,10 @@ function Actions({ onHelp }: { onHelp: () => void }) {
 
   return (
     <div className="actions">
-      <button type="button" className="btn primary" onClick={share}><Icon name="share" size={16} /><span>Share</span></button>
-      <button type="button" className="btn ghost" onClick={png} title="Export the main visual as PNG"><Icon name="image" size={16} /><span>PNG</span></button>
-      <button type="button" className="btn ghost" onClick={json} title="Export scenario as JSON"><Icon name="download" size={16} /><span>JSON</span></button>
-      <button type="button" className="btn ghost" onClick={() => file.current?.click()} title="Import a scenario JSON"><Icon name="upload" size={16} /><span>Import</span></button>
+      <button type="button" className="btn primary" onClick={share} aria-label="Copy share link"><Icon name="share" size={16} /><span>Share</span></button>
+      <button type="button" className="btn ghost" onClick={png} title="Export the main visual as PNG" aria-label="Export PNG"><Icon name="image" size={16} /><span>PNG</span></button>
+      <button type="button" className="btn ghost" onClick={json} title="Export scenario as JSON" aria-label="Export JSON"><Icon name="download" size={16} /><span>JSON</span></button>
+      <button type="button" className="btn ghost" onClick={() => file.current?.click()} title="Import a scenario JSON" aria-label="Import JSON"><Icon name="upload" size={16} /><span>Import</span></button>
       <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); e.target.value = ''; }} />
       <button type="button" className="icon-btn" onClick={onHelp} aria-label="Keyboard shortcuts (?)" title="Shortcuts · ?"><Icon name="keyboard" /></button>
     </div>

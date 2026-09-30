@@ -29,6 +29,7 @@ interface Sim extends Scenarios {
   playing: boolean;
   speed: number;
   toast: string | null;
+  switched: boolean; // true after the first module change; drives the enter animation
   setModule: (m: ModuleId) => void;
   update: <K extends keyof Scenarios>(k: K, patch: Partial<Scenarios[K]>) => void;
   setCursor: (n: number) => void;
@@ -118,7 +119,8 @@ export const useSim = create<Sim>()((set, get) => ({
   playing: false,
   speed: 1,
   toast: null,
-  setModule: (module) => set({ module, cursor: 0, playing: false }),
+  switched: false,
+  setModule: (module) => set({ module, cursor: 0, playing: false, switched: true }),
   update: (k, patch) => set((s) => ({ [k]: { ...s[k], ...patch }, playing: false }) as Partial<Sim>),
   setCursor: (cursor) => set({ cursor: Math.max(0, cursor) }),
   setPlaying: (playing) => set({ playing }),
