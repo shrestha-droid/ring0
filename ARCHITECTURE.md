@@ -73,7 +73,7 @@ ring0/
 | 2 | memory engine + tests (incl. Belady 9→10) | done |
 | 3 | deadlock engine + tests (Silberschatz banker example) | done |
 | 4 | sync engine + tests | done |
-| 5 | UI, one module at a time, shell + time travel + share + export | built; Lighthouse pending |
+| 5 | UI, one module at a time, shell + time travel + share + export | done · Lighthouse (mobile, local build): perf 100, a11y 100, best practices 100 |
 | 6 | README with GIFs, WRITEUP.md with TODOs, deploy | live URL |
 
 ## Textbook sources the tests will cite
