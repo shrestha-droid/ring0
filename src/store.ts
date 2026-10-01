@@ -39,12 +39,12 @@ interface Sim extends Scenarios {
   load: (env: ScenarioEnvelope<ModuleId, unknown>, cursor?: number) => boolean;
 }
 
-/** Circle layout, interleaving processes and resources so dining philosophers sit between their forks. */
+/** Circle layout, resource then process, so philosopher i sits between forks F_i and F_(i+1). */
 export function circleLayout(rag: Rag): Rag {
   const ids: string[] = [];
   for (let i = 0; i < Math.max(rag.processes.length, rag.resources.length); i++) {
-    if (rag.processes[i]) ids.push(rag.processes[i]);
     if (rag.resources[i]) ids.push(rag.resources[i].id);
+    if (rag.processes[i]) ids.push(rag.processes[i]);
   }
   const layout = Object.fromEntries(ids.map((id, i) => {
     const a = (i / ids.length) * Math.PI * 2 - Math.PI / 2;
