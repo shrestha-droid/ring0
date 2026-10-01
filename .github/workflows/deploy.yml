@@ -26,6 +26,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - run: npm run e2e # drives the built app in Chrome; a broken interaction blocks the deploy
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

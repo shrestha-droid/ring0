@@ -46,6 +46,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm test           # engine tests
 npm run build      # type-check, build, pre-render → dist/
+npm run e2e        # browser test of every interaction, against the build (uses local Chrome)
 ```
 
 Requires Node 22 or newer.
@@ -86,4 +87,4 @@ More on the decisions behind this in [WRITEUP.md](WRITEUP.md), and the full API 
 
 ## Deploy
 
-Every push to `main` runs the tests, builds, and publishes `dist/` to GitHub Pages (`.github/workflows/deploy.yml`). Asset paths are relative, so the same build also works on any static host.
+Every push to `main` runs the engine tests, builds, runs the browser test, and publishes `dist/` to GitHub Pages (`.github/workflows/deploy.yml`). Asset paths are relative, so the same build also works on any static host.
