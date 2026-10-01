@@ -6,7 +6,7 @@
 ring0/
 ├─ ARCHITECTURE.md            this file
 ├─ README.md                  (M6) GIFs + architecture notes
-├─ WRITEUP.md                 (M6) design decisions, TODO markers for your own explanations
+├─ WRITEUP.md                 design decisions and trade-offs
 ├─ package.json / vite.config.ts / tsconfig.json / vercel.json
 ├─ index.html
 ├─ src/
