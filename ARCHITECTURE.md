@@ -1,4 +1,4 @@
-# RING0 — architecture (engine and UI built: milestones 1–5)
+# RING0 — architecture (all milestones done · live at https://shrestha-droid.github.io/ring0/)
 
 ## Repo structure
 
@@ -74,7 +74,7 @@ ring0/
 | 3 | deadlock engine + tests (Silberschatz banker example) | done |
 | 4 | sync engine + tests | done |
 | 5 | UI, one module at a time, shell + time travel + share + export | done · Lighthouse (mobile, local build): perf 100, a11y 100, best practices 100 |
-| 6 | README with GIFs, WRITEUP.md with TODOs, deploy | live URL |
+| 6 | README with GIFs, WRITEUP.md with TODOs, deploy | done · GitHub Pages via Actions |
 
 ## Textbook sources the tests will cite
 
